@@ -1,0 +1,242 @@
+/YWROBOT
+//Compatible with the Arduino IDE 1.0
+//Library version:1.1
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+#include <SoftwareSerial.h>
+
+LiquidCrystal_I2C lcd(0x27, 16 ,2); 
+const int motor1A = 2;//4;
+const int motor1B = 3;
+const int motor2A = 4;
+const int motor2B = 5;
+const int motor3A = 6;
+const int motor3B = 7;
+const int motor4A = 8;
+const int motor4B = 9;
+/*int ldr = 24;
+int ldrStatus;
+int lights = 13;*/
+#define bluetoothTx 2 // define the TX pin of the Bluetooth module
+#define bluetoothRx 3 // define the RX pin of the Bluetooth module
+SoftwareSerial bluetooth(bluetoothTx, bluetoothRx); // create a software serial object for Bluetooth communication
+char command;
+
+// Define the pins for the ultrasonic sensor
+const int frontTrigPin = 10;
+const int frontEchoPin = 11;
+
+// Define the pins for the sharp distance sensor
+//const int backSharpPin = 0;
+
+//const int backSharpPin = 23;
+
+//Declaring all functions
+void stopMotors();
+void moveBackward();
+void moveLeft();
+void moveRight();
+void moveForward();
+
+
+
+ // set the LCD address to 0x27 for a 16 chars and 2 line display
+
+void setup()
+{
+  lcd.init();                      // initialize the lcd 
+  lcd.init();
+  // Print a message to the LCD.
+  lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("AGOJIE TEAM 1");
+  lcd.setCursor(0,1);
+  lcd.print("TESLA MOTORS");
+
+
+ // Set the motor driver pins to output mode
+ pinMode(frontTrigPin, OUTPUT);
+  pinMode(frontEchoPin, INPUT);
+  //pinMode(backSharpPin, INPUT);
+//configuring the ldr
+/*pinMode(ldr, INPUT);
+pinMode(lights, OUTPUT);*/
+  
+  // Set the motor driver pins to output mode
+  pinMode(motor1A, OUTPUT);
+  pinMode(motor1B, OUTPUT);
+  pinMode(motor2A, OUTPUT);
+  pinMode(motor2B, OUTPUT);
+  pinMode(motor3A, OUTPUT);
+  pinMode(motor3B, OUTPUT);
+  pinMode(motor4A, OUTPUT);
+  pinMode(motor4B, OUTPUT);
+  Serial.begin(9600);
+  //bluetooth.begin(9600); // initialize Bluetooth communication
+}
+
+
+void loop(){
+  /*delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("AGOJIE ROBOT !");
+  lcd.setCursor(0,1);
+  lcd.print("TEAM ONE");*/
+
+/*ldrStatus = analogRead(ldr);
+if (ldr > 800) {
+  digitalWrite(lights, LOW);
+
+}
+else {
+  digitalWrite(lights, HIGH);
+ }*/
+ if(Serial.available()){
+     command = Serial.read();
+    stopMotors(); //initialize with motors stoped
+    //Change pin mode only if new command is different from previous.
+    //Serial.println(command);
+   switch(command){
+     case 'F':
+      moveForward();
+       break;
+     case 'B':
+      moveBackward();
+       break;
+     case 'L':
+      moveLeft();
+       break;
+     case 'R':
+      moveRight();
+       break;}
+ }
+else{
+
+
+ long frontDuration, frontCm;
+  digitalWrite(frontTrigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(frontTrigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(frontTrigPin, LOW);
+  frontDuration = pulseIn(frontEchoPin, HIGH);
+  frontCm = frontDuration / 58;
+  Serial.print("Frontdistance: ");
+  Serial.println( frontCm);
+
+ //Read the distance from the sharp distance sensor at the back
+ //int backSharpValue = analogRead(backSharpPin);
+ //int backDistance = backSharpValue / 2.54;
+  // Serial.print("Backdistance: ");
+  // Serial.println(backDistance);
+
+  // Check if there is an obstacle within 15cm in front
+  // Check if there is an obstacle within 15cm in front and at the back
+  if (frontCm > 10 ) 
+  {
+   
+    //move forward
+     moveForward();
+    
+  }
+
+  else if( frontCm <= 15) // when robot encounters an obstacle in the specified range
+  {
+    // robot should stop for sometime and then move backward for sometime just to avoid obstacle infront
+    stopMotors();
+   // moveBackward();
+    // Choose a direction without obstacle
+    // turn left
+    moveLeft();
+    delay(1000);
+    stopMotors();
+    delay(1000);
+    
+    
+  }  
+   }
+  
+
+    
+}
+void moveForward() { 
+  digitalWrite(motor1A, HIGH);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, HIGH);
+  digitalWrite(motor2B, LOW);
+  digitalWrite(motor3A, HIGH);
+  digitalWrite(motor3B, LOW);
+  digitalWrite(motor4A, HIGH);
+  digitalWrite(motor4B, LOW);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("TESLA MOTORS");
+    lcd.setCursor(0,1);
+  lcd.print("Forward movement"); 
+}
+void moveBackward() {
+  digitalWrite(motor1A, LOW);
+  digitalWrite(motor1B, HIGH);
+  digitalWrite(motor2A, LOW);
+  digitalWrite(motor2B, HIGH);
+  digitalWrite(motor3A, LOW);
+  digitalWrite(motor3B, HIGH);
+  digitalWrite(motor4A, LOW);
+  digitalWrite(motor4B, HIGH);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("TESLA MOTORS");
+  lcd.setCursor(0,1);
+  lcd.print("Backward movement");
+  
+}
+void moveLeft() {
+  digitalWrite(motor1A, HIGH);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, LOW);
+  digitalWrite(motor2B, HIGH);
+  digitalWrite(motor3A, HIGH);
+  digitalWrite(motor3B, LOW);
+  digitalWrite(motor4A, LOW);
+  digitalWrite(motor4B, HIGH);
+   lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("TESLA MOTORS");
+  lcd.setCursor(0,1);
+  lcd.print("LEFT MOVEMENT");
+  
+}
+
+void moveRight() {
+digitalWrite(motor1A, LOW);
+digitalWrite(motor1B, HIGH);
+digitalWrite(motor2A, HIGH);
+digitalWrite(motor2B, LOW);
+digitalWrite(motor3A, LOW);
+digitalWrite(motor3B, HIGH);
+digitalWrite(motor4A, HIGH);
+digitalWrite(motor4B, LOW);
+Serial.println(" RIGHT movement");
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("TESLA MOTORS");
+  lcd.setCursor(0,1);
+  lcd.print("RIGHT MOVEMENT");
+}
+
+void stopMotors() {
+digitalWrite(motor1A, LOW);
+digitalWrite(motor1B, LOW);
+digitalWrite(motor2A, LOW);
+digitalWrite(motor2B, LOW);
+digitalWrite(motor3A, LOW);
+digitalWrite(motor3B, LOW);
+digitalWrite(motor4A, LOW);
+digitalWrite(motor4B, LOW);
+lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("TESLA MOTORS");
+  
+  lcd.setCursor(0,1);
+  lcd.print("NO MOVEMENT");
+}
